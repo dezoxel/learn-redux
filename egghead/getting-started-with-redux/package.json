@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Learn redux with egghead",
   "dependencies": {
+    "deep-freeze": "0.0.1",
     "expect": "^1.20.2",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
