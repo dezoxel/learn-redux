@@ -2,12 +2,15 @@
   "name": "getting-started-with-redux",
   "version": "0.0.1",
   "description": "Learn redux with egghead",
-  "main": "5.js",
   "dependencies": {
     "expect": "^1.20.2",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
     "redux": "^3.6.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "local-web-server": "^1.2.6"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
