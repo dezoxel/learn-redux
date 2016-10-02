@@ -1,0 +1,15 @@
+{
+  "name": "getting-started-with-redux",
+  "version": "0.0.1",
+  "description": "Learn redux with egghead",
+  "main": "5.js",
+  "dependencies": {
+    "expect": "^1.20.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
