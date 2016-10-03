@@ -1,3 +1,6 @@
+const {createStore, combineReducers} = Redux;
+const {Component} = React;
+
 // REDUCERS --------------------------------------------------------------------
 const todoReducer = (todo, action) => {
   switch (action.type) {
@@ -111,15 +114,6 @@ const getVisibleTodos = (todos, filter) => {
   }
 };
 
-// CONFIG -------------------------------------------------------------------
-const {createStore, combineReducers} = Redux;
-const {Component} = React;
-
-const store = createStore(combineReducers({
-  todos: todosReducer,
-  visibilityFilter: visibilityFilterReducer
-}));
-
 // PRESENTATIONAL COMPONENTS ---------------------------------------------------
 const Link = ({active, onClick, children}) => {
   if (active) {
@@ -141,29 +135,30 @@ const TodoList = ({onTodoClick, todos}) => (
   </ul>
 );
 
-const FilterPanel = () => (
+const FilterPanel = ({store}) => (
   <p>
     Show:
     {' '}
-    <FilterLink filter='SHOW_ALL'>All</FilterLink>
+    <FilterLink filter='SHOW_ALL' store={store}>All</FilterLink>
     {' '}
-    <FilterLink filter='SHOW_ACTIVE'>Active</FilterLink>
+    <FilterLink filter='SHOW_ACTIVE' store={store}>Active</FilterLink>
     {' '}
-    <FilterLink filter='SHOW_COMPLETED'>Completed</FilterLink>
+    <FilterLink filter='SHOW_COMPLETED' store={store}>Completed</FilterLink>
   </p>
 );
 
-const TodoApp = () => (
+const TodoApp = ({store}) => (
   <div>
-    <FilterPanel />
-    <AddTodo />
-    <VisibleTodoList />
+    <FilterPanel store={store} />
+    <AddTodo store={store} />
+    <VisibleTodoList store={store} />
   </div>
-)
+);
 
 // CONTAINER COMPONENTS --------------------------------------------------------
 class FilterLink extends Component {
   componentDidMount() {
+    const {store} = this.props;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -172,7 +167,7 @@ class FilterLink extends Component {
   }
 
   render() {
-    const {filter, children} = this.props;
+    const {filter, children, store} = this.props;
     const currentFilter = store.getState().visibilityFilter;
 
     const onFilter = (filter) => store.dispatch({type: 'SET_VISIBILITY_FILTER', filter});
@@ -183,6 +178,7 @@ class FilterLink extends Component {
 
 class VisibleTodoList extends Component {
   componentDidMount() {
+    const {store} = this.props;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -191,6 +187,7 @@ class VisibleTodoList extends Component {
   }
 
   render() {
+    const {store} = this.props;
     const {todos, visibilityFilter} = store.getState();
     const visibleTodos = getVisibleTodos(todos, visibilityFilter);
 
@@ -202,6 +199,7 @@ class VisibleTodoList extends Component {
 
 class AddTodo extends Component {
   componentDidMount() {
+    const {store} = this.props;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -211,6 +209,7 @@ class AddTodo extends Component {
 
   render() {
     let input;
+    const {store} = this.props;
 
     const onAdd = () => {
       store.dispatch({type: 'ADD_TODO', id: newTodoId++, text: input.value});
@@ -228,7 +227,12 @@ class AddTodo extends Component {
 
 // BOOTSTRAP -------------------------------------------------------------------
 const render = () => {
-  ReactDOM.render(<TodoApp />, document.getElementById('root'));
+  const store = createStore(combineReducers({
+    todos: todosReducer,
+    visibilityFilter: visibilityFilterReducer
+  }));
+
+  ReactDOM.render(<TodoApp store={store} />, document.getElementById('root'));
 };
 
 render();
