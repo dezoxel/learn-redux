@@ -114,6 +114,36 @@ const toggleTodo = (id) => {
   store.dispatch({type: 'TOGGLE_TODO', id});
 };
 
+const onFilter = (filter) => {
+  store.dispatch({type: 'SET_VISIBILITY_FILTER', filter});
+};
+
+const FilterLink = ({filter, currentFilter, onFilter, children}) => {
+  if (filter === currentFilter) {
+    return <span>{children}</span>;
+  }
+
+  return (
+    <a href='#' onClick={e => {
+      e.preventDefault();
+      onFilter(filter);
+    }}>{children}</a>
+  );
+};
+
+const getVisibleTodos = (todos, filter) => {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos;
+    case 'SHOW_ACTIVE':
+      return todos.filter(t => !t.completed);
+    case 'SHOW_COMPLETED':
+      return todos.filter(t => t.completed);
+    default:
+      return [];
+  }
+};
+
 class TodoApp extends Component {
   onAdd() {
     this.props.onAdd(this.input.value);
@@ -121,14 +151,25 @@ class TodoApp extends Component {
   }
 
   render() {
+    const {todos, visibilityFilter} = this.props;
+    const visibleTodos = getVisibleTodos(todos, visibilityFilter);
     return (
       <div>
+        <p>
+          Show:
+          {' '}
+          <FilterLink filter='SHOW_ALL' currentFilter={visibilityFilter} onFilter={onFilter}>All</FilterLink>
+          {' '}
+          <FilterLink filter='SHOW_ACTIVE' currentFilter={visibilityFilter} onFilter={onFilter}>Active</FilterLink>
+          {' '}
+          <FilterLink filter='SHOW_COMPLETED' currentFilter={visibilityFilter} onFilter={onFilter}>Completed</FilterLink>
+        </p>
         <input ref={node => {this.input = node}} />
 
         <button onClick={this.onAdd.bind(this)}>Add todo</button>
 
         <ul>
-          {this.props.todos.map(todo =>
+          {visibleTodos.map(todo =>
             <li key={todo.id} onClick={() => this.props.onToggle(todo.id)}
               style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
             {todo.text}
@@ -144,6 +185,7 @@ const render = () => {
   ReactDOM.render(
     <TodoApp
       todos={store.getState().todos}
+      visibilityFilter={store.getState().visibilityFilter}
       onAdd={addTodo}
       onToggle={toggleTodo}
       >
