@@ -1,3 +1,4 @@
+// REDUCERS --------------------------------------------------------------------
 const todoReducer = (todo, action) => {
   switch (action.type) {
     case 'ADD_TODO':
@@ -40,6 +41,7 @@ const visibilityFilterReducer = (state = 'SHOW_ALL', action) => {
   }
 };
 
+// TESTS -----------------------------------------------------------------------
 const testAddTodo = () => {
   const stateBefore = [];
   const action = {
@@ -93,40 +95,53 @@ testAddTodo();
 testToggleTodo();
 console.log('Tests passed');
 
-const {createStore} = Redux;
-
-const combineReducers = (reducers) => {
-  return (state = {}, action) => {
-    return Object.keys(reducers).reduce((newState, key) => {
-      newState[key] = reducers[key](state[key], action);
-      return newState;
-    }, {});
-  };
-};
+// BOOTSTRAP -------------------------------------------------------------------
+const {createStore, combineReducers} = Redux;
+const {Component} = React;
 
 const store = createStore(combineReducers({
   todos: todosReducer,
   visibilityFilter: visibilityFilterReducer
 }));
 
-store.subscribe(() => {
-  console.log('Current state:');
-  console.log(store.getState());
-  console.log('--------------');
-});
+// VIEW ------------------------------------------------------------------------
+let newTodoId = 0;
+const addTodo = (text) => {
+  store.dispatch({type: 'ADD_TODO', id: newTodoId++, text});
+};
 
-console.log('Initial state:');
-console.log(store.getState());
-console.log('--------------');
+class TodoApp extends Component {
+  onAddTodo() {
+    this.props.onAddTodo(this.input.value);
+    this.input.value = '';
+  }
 
-console.log('ADD_TODO');
-store.dispatch({type: 'ADD_TODO', id: 0, text: 'learn redux'});
+  render() {
+    return (
+      <div>
+        <input ref={node => {this.input = node}} />
 
-console.log('ADD_TODO');
-store.dispatch({type: 'ADD_TODO', id: 1, text: 'keep going'});
+        <button onClick={this.onAddTodo.bind(this)}>Add todo</button>
 
-console.log('TOGGLE_TODO');
-store.dispatch({type: 'TOGGLE_TODO', id: 1});
+        <ul>
+          {this.props.todos.map(todo =>
+            <li key={todo.id}>{todo.text}</li>
+          )}
+        </ul>
+      </div>
+    );
+  }
+}
 
-console.log('SET_VISIBILITY_FILTER');
-store.dispatch({type: 'SET_VISIBILITY_FILTER', filter: 'SHOW_COMPLETED'});
+const render = () => {
+  ReactDOM.render(
+    <TodoApp
+      todos={store.getState().todos}
+      onAddTodo={addTodo}>
+    </TodoApp>,
+    document.getElementById('root')
+  );
+};
+
+store.subscribe(render);
+render();
