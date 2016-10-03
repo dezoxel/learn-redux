@@ -120,7 +120,7 @@ const store = createStore(combineReducers({
   visibilityFilter: visibilityFilterReducer
 }));
 
-// COMPONENTS ------------------------------------------------------------------
+// PRESENTATIONAL COMPONENTS ---------------------------------------------------
 const Link = ({active, onClick, children}) => {
   if (active) {
     return <span>{children}</span>;
@@ -129,6 +129,39 @@ const Link = ({active, onClick, children}) => {
   return <a href='#' onClick={e => {e.preventDefault(); onClick(); }}>{children}</a>;
 };
 
+const Todo = ({onClick, completed, text}) => (
+  <li onClick={onClick} style={{ textDecoration: completed ? 'line-through' : 'none' }}>{text}</li>
+);
+
+const TodoList = ({onTodoClick, todos}) => (
+  <ul>
+    {todos.map(todo =>
+      <Todo key={todo.id} text={todo.text} completed={todo.completed} onClick={() => onTodoClick(todo.id)} />
+    )}
+  </ul>
+);
+
+const FilterPanel = () => (
+  <p>
+    Show:
+    {' '}
+    <FilterLink filter='SHOW_ALL'>All</FilterLink>
+    {' '}
+    <FilterLink filter='SHOW_ACTIVE'>Active</FilterLink>
+    {' '}
+    <FilterLink filter='SHOW_COMPLETED'>Completed</FilterLink>
+  </p>
+);
+
+const TodoApp = () => (
+  <div>
+    <FilterPanel />
+    <AddTodo />
+    <VisibleTodoList />
+  </div>
+)
+
+// CONTAINER COMPONENTS --------------------------------------------------------
 class FilterLink extends Component {
   componentDidMount() {
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
@@ -148,45 +181,7 @@ class FilterLink extends Component {
   }
 };
 
-const Todo = ({onClick, completed, text}) => (
-  <li onClick={onClick} style={{ textDecoration: completed ? 'line-through' : 'none' }}>{text}</li>
-);
-
-const TodoList = ({onTodoClick, todos}) => (
-  <ul>
-    {todos.map(todo =>
-      <Todo key={todo.id} text={todo.text} completed={todo.completed} onClick={() => onTodoClick(todo.id)} />
-    )}
-  </ul>
-);
-
-const AddTodo = ({onAddClick}) => {
-  let input;
-
-  return (
-    <div>
-      <input ref={node => {input = node}} />
-      <button onClick={() => {
-        onAddClick(input.value);
-        input.value = '';
-      }}>Add todo</button>
-    </div>
-  );
-};
-
-const FilterPanel = () => (
-  <p>
-    Show:
-    {' '}
-    <FilterLink filter='SHOW_ALL'>All</FilterLink>
-    {' '}
-    <FilterLink filter='SHOW_ACTIVE'>Active</FilterLink>
-    {' '}
-    <FilterLink filter='SHOW_COMPLETED'>Completed</FilterLink>
-  </p>
-);
-
-class TodoApp extends Component {
+class VisibleTodoList extends Component {
   componentDidMount() {
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
@@ -195,29 +190,45 @@ class TodoApp extends Component {
     this.unsubscribe();
   }
 
-  render () {
+  render() {
     const {todos, visibilityFilter} = store.getState();
     const visibleTodos = getVisibleTodos(todos, visibilityFilter);
 
-    const onAdd = (text) => store.dispatch({type: 'ADD_TODO', id: newTodoId++, text});
     const toggleTodo = (id) => store.dispatch({type: 'TOGGLE_TODO', id});
 
-    return (
-      <div>
-        <FilterPanel />
-        <AddTodo onAddClick={text => onAdd(text)}/>
-        <TodoList todos={visibleTodos} onTodoClick={id => toggleTodo(id)}/>
-      </div>
-    );
+    return <TodoList todos={visibleTodos} onTodoClick={id => toggleTodo(id)}/>;
   }
 }
 
+class AddTodo extends Component {
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  render() {
+    let input;
+
+    const onAdd = () => {
+      store.dispatch({type: 'ADD_TODO', id: newTodoId++, text: input.value});
+      input.value = '';
+    };
+
+    return (
+      <div>
+        <input ref={node => {input = node}} />
+        <button onClick={() => onAdd()}>Add todo</button>
+      </div>
+    );
+  }
+};
+
 // BOOTSTRAP -------------------------------------------------------------------
 const render = () => {
-  ReactDOM.render(
-    <TodoApp />,
-    document.getElementById('root')
-  );
+  ReactDOM.render(<TodoApp />, document.getElementById('root'));
 };
 
 render();
