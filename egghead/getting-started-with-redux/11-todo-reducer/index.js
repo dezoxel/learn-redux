@@ -40,13 +40,6 @@ const visibilityFilterReducer = (state = 'SHOW_ALL', action) => {
   }
 };
 
-const todoAppReducer = (state = {}, action) => {
-  return {
-    todos: todosReducer(state.todos, action),
-    visibilityFilter: visibilityFilterReducer(state.visibilityFilter, action)
-  };
-};
-
 const testAddTodo = () => {
   const stateBefore = [];
   const action = {
@@ -100,8 +93,12 @@ testAddTodo();
 testToggleTodo();
 console.log('Tests passed');
 
-const {createStore} = Redux;
-const store = createStore(todoAppReducer);
+const {createStore, combineReducers} = Redux;
+
+const store = createStore(combineReducers({
+  todos: todosReducer,
+  visibilityFilter: visibilityFilterReducer
+}));
 
 store.subscribe(() => {
   console.log('Current state:');
