@@ -110,9 +110,13 @@ const addTodo = (text) => {
   store.dispatch({type: 'ADD_TODO', id: newTodoId++, text});
 };
 
+const toggleTodo = (id) => {
+  store.dispatch({type: 'TOGGLE_TODO', id});
+};
+
 class TodoApp extends Component {
-  onAddTodo() {
-    this.props.onAddTodo(this.input.value);
+  onAdd() {
+    this.props.onAdd(this.input.value);
     this.input.value = '';
   }
 
@@ -121,11 +125,14 @@ class TodoApp extends Component {
       <div>
         <input ref={node => {this.input = node}} />
 
-        <button onClick={this.onAddTodo.bind(this)}>Add todo</button>
+        <button onClick={this.onAdd.bind(this)}>Add todo</button>
 
         <ul>
           {this.props.todos.map(todo =>
-            <li key={todo.id}>{todo.text}</li>
+            <li key={todo.id} onClick={() => this.props.onToggle(todo.id)}
+              style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+            {todo.text}
+            </li>
           )}
         </ul>
       </div>
@@ -137,7 +144,9 @@ const render = () => {
   ReactDOM.render(
     <TodoApp
       todos={store.getState().todos}
-      onAddTodo={addTodo}>
+      onAdd={addTodo}
+      onToggle={toggleTodo}
+      >
     </TodoApp>,
     document.getElementById('root')
   );
